@@ -1,0 +1,224 @@
+/* ═══ LAYOUT ═══ */
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--sa-abyss);
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--sa-abyss);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(201, 168, 76, 0.2);
+  border-top-color: var(--sa-gold);
+  border-radius: 50%;
+  animation: sa-spin 0.8s linear infinite;
+}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar {
+  width: 260px;
+  background: var(--sa-midnight);
+  border-right: 1px solid rgba(201, 168, 76, 0.06);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  transition: transform 0.3s var(--sa-ease-luxe);
+}
+
+.sidebarHeader {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  font-family: var(--sa-font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--sa-ivory);
+}
+.brand span { color: var(--sa-gold); }
+
+.mobileClose {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--sa-ivory-dim);
+}
+
+/* Tenant card */
+.tenantCard {
+  margin: 1rem;
+  padding: 1rem;
+  background: var(--sa-deep);
+  border: 1px solid rgba(201, 168, 76, 0.08);
+}
+.tenantName {
+  font-family: var(--sa-font-display);
+  font-size: 1.1rem;
+  color: var(--sa-ivory);
+  margin-bottom: 0.4rem;
+}
+.tenantPlan {
+  font-size: 0.75rem;
+  color: var(--sa-ivory-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.tenantPlan span {
+  color: var(--sa-gold);
+  font-weight: 600;
+}
+.trialBadge {
+  margin-top: 0.75rem;
+  padding: 0.3rem 0.6rem;
+  background: rgba(74, 14, 46, 0.3);
+  color: var(--sa-gold-bright);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-align: center;
+  border: 1px solid rgba(201, 168, 76, 0.2);
+}
+
+/* Nav */
+.nav {
+  flex: 1;
+  padding: 0.5rem 0;
+}
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+  color: var(--sa-ivory-dim);
+  border-left: 2px solid transparent;
+  transition: all 0.25s var(--sa-ease-luxe);
+}
+.navItem:hover {
+  color: var(--sa-gold);
+  background: rgba(201, 168, 76, 0.03);
+  border-left-color: var(--sa-gold-dim);
+}
+.navActive {
+  color: var(--sa-gold);
+  background: rgba(201, 168, 76, 0.06);
+  border-left-color: var(--sa-gold);
+}
+
+/* Footer */
+.sidebarFooter {
+  padding: 1rem;
+  border-top: 1px solid rgba(201, 168, 76, 0.06);
+}
+.localeRow {
+  margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: center;
+}
+.userCard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--sa-purple);
+  border: 1.5px solid var(--sa-gold-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sa-gold);
+  font-family: var(--sa-font-display);
+  font-weight: 600;
+}
+.userInfo {
+  flex: 1;
+  min-width: 0;
+}
+.userName {
+  font-size: 0.85rem;
+  color: var(--sa-ivory);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.userEmail {
+  font-size: 0.7rem;
+  color: var(--sa-ivory-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.logoutBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  background: transparent;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  color: var(--sa-error);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all 0.3s;
+}
+.logoutBtn:hover {
+  background: rgba(231, 76, 60, 0.1);
+  border-color: var(--sa-error);
+}
+
+/* ═══ MAIN ═══ */
+.main {
+  flex: 1;
+  padding: 2rem 3rem;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.mobileToggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--sa-ivory);
+  margin-bottom: 1rem;
+}
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 900px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translateX(-100%);
+    z-index: 100;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+  }
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+  .mobileClose { display: block; }
+  .mobileToggle { display: block; }
+  .main { padding: 1.5rem; }
+}

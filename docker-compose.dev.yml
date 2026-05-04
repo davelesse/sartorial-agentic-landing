@@ -1,0 +1,54 @@
+version: "3.9"
+
+# ═══════════════════════════════════════════════════════════
+# SARTORIAL AGENTIC — Development Overrides
+# Hot reload, mounted volumes, debug mode
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# ═══════════════════════════════════════════════════════════
+
+services:
+
+  backend:
+    build:
+      context: ./backend
+      target: base
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      - APP_ENV=development
+      - CORS_ORIGINS=http://localhost:3000
+    volumes:
+      - ./backend:/app
+
+  celery-worker:
+    command: celery -A app.core.celery_app worker --loglevel=debug --concurrency=2 -Q agents,emails,stripe,analytics
+    environment:
+      - APP_ENV=development
+    volumes:
+      - ./backend:/app
+
+  celery-beat:
+    command: celery -A app.core.celery_app beat --loglevel=debug --schedule=/tmp/celerybeat-schedule
+    environment:
+      - APP_ENV=development
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build:
+      context: ./frontend
+      target: deps
+    command: npm run dev
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+
+  # Pas de SSL en dev — Nginx simplifié
+  nginx:
+    volumes:
+      - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"

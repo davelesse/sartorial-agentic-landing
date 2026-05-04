@@ -1,0 +1,60 @@
+.container { animation: sa-fade-up 0.5s var(--sa-ease-luxe); }
+.skeleton { height: 400px; }
+.header { margin-bottom: 2rem; }
+.eyebrow { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.25em; text-transform: uppercase; color: var(--sa-gold); margin-bottom: 0.4rem; }
+.title { font-family: var(--sa-font-display); font-size: 2.2rem; font-weight: 300; color: var(--sa-ivory); }
+.title em { font-style: italic; color: var(--sa-gold); }
+.desc { font-size: 0.95rem; color: var(--sa-ivory-dim); max-width: 640px; margin-top: 0.5rem; }
+
+/* Affiliate */
+.affiliateBox { background: linear-gradient(170deg, var(--sa-purple), var(--sa-midnight)); border: 1px solid rgba(201,168,76,0.2); padding: 1.5rem; margin-bottom: 2rem; }
+.affiliateLabel { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--sa-gold); margin-bottom: 0.8rem; }
+.affiliateRow { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.affiliateUrl { flex: 1; background: var(--sa-deep); padding: 0.7rem 1rem; font-family: var(--sa-font-mono); font-size: 0.8rem; color: var(--sa-ivory); border: 1px solid rgba(201,168,76,0.1); word-break: break-all; min-width: 200px; }
+.copyBtn { display: flex; align-items: center; gap: 0.3rem; padding: 0.7rem 1rem; background: var(--sa-gold); color: var(--sa-abyss); border: none; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; flex-shrink: 0; }
+.copyBtn:hover { background: var(--sa-gold-bright); transform: translateY(-1px); }
+.affiliateHint { margin-top: 0.8rem; font-size: 0.8rem; color: var(--sa-ivory-dim); }
+
+/* Stats */
+.statsGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
+.statCard { background: var(--sa-midnight); border: 1px solid rgba(201,168,76,0.06); padding: 1.5rem; transition: all 0.3s var(--sa-ease-luxe); }
+.statCard:hover { border-color: rgba(201,168,76,0.2); transform: translateY(-2px); }
+.statIcon { width: 40px; height: 40px; border: 1px solid rgba(201,168,76,0.2); display: flex; align-items: center; justify-content: center; color: var(--sa-gold); margin-bottom: 1rem; }
+.statValue { font-family: var(--sa-font-display); font-size: 2.2rem; font-weight: 300; color: var(--sa-ivory); line-height: 1; margin-bottom: 0.3rem; }
+.statLabel { font-size: 0.8rem; color: var(--sa-ivory-dim); }
+
+/* Table */
+.section { margin-bottom: 2.5rem; }
+.sectionTitle { font-family: var(--sa-font-display); font-size: 1.3rem; font-weight: 500; color: var(--sa-ivory); margin-bottom: 1rem; }
+.table { background: var(--sa-midnight); border: 1px solid rgba(201,168,76,0.06); }
+.thead, .row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 1rem; padding: 0.9rem 1.2rem; align-items: center; }
+.thead { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--sa-gold-dim); border-bottom: 1px solid rgba(201,168,76,0.1); }
+.row { font-size: 0.85rem; color: var(--sa-ivory); border-bottom: 1px solid rgba(201,168,76,0.04); }
+.row:last-child { border-bottom: none; }
+.clientName { font-weight: 500; }
+.planTag { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sa-gold); }
+.statusTag { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.2rem 0.5rem; border: 1px solid; width: fit-content; }
+.st_active { color: var(--sa-success); border-color: var(--sa-success); }
+.st_trialing { color: var(--sa-gold); border-color: var(--sa-gold); }
+.st_canceled { color: var(--sa-error); border-color: var(--sa-error); }
+.st_past_due { color: var(--sa-warning); border-color: var(--sa-warning); }
+
+/* Empty */
+.emptyState { background: var(--sa-midnight); border: 1px solid rgba(201,168,76,0.08); padding: 3rem 2rem; text-align: center; }
+.emptyIcon { font-size: 2rem; color: var(--sa-gold); margin-bottom: 1rem; }
+.emptyState h2 { font-family: var(--sa-font-display); font-size: 1.5rem; color: var(--sa-ivory); margin-bottom: 0.5rem; }
+.emptyState p { font-size: 0.9rem; color: var(--sa-ivory-dim); max-width: 400px; margin: 0 auto; }
+
+/* Plans registration */
+.plansGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+.planCard { background: var(--sa-midnight); border: 1px solid rgba(201,168,76,0.08); padding: 2rem; text-align: center; position: relative; transition: all 0.3s var(--sa-ease-luxe); }
+.planCard:hover { border-color: rgba(201,168,76,0.2); transform: translateY(-3px); }
+.planFeatured { background: linear-gradient(170deg, var(--sa-purple), var(--sa-midnight)); border-color: rgba(201,168,76,0.2); }
+.badge { position: absolute; top: -1px; right: 1.5rem; background: var(--sa-gold); color: var(--sa-abyss); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; padding: 0.3rem 0.7rem; }
+.planCard h3 { font-family: var(--sa-font-display); font-size: 1.6rem; color: var(--sa-ivory); margin-bottom: 0.5rem; }
+.planPrice { font-family: var(--sa-font-display); font-size: 2.5rem; color: var(--sa-gold); margin-bottom: 0.5rem; }
+.planPrice span { font-size: 0.9rem; color: var(--sa-ivory-dim); }
+.planCard p { font-size: 0.85rem; color: var(--sa-ivory-dim); margin-bottom: 1.5rem; line-height: 1.6; }
+.btnSelect { padding: 0.9rem 2rem; background: var(--sa-gold); color: var(--sa-abyss); border: none; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; }
+.btnSelect:hover:not(:disabled) { background: var(--sa-gold-bright); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(201,168,76,0.25); }
+.btnSelect:disabled { opacity: 0.5; cursor: not-allowed; }

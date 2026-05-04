@@ -1,0 +1,38 @@
+# ═══ Environment ═══
+.env
+.env.local
+.env.production
+
+# ═══ Python ═══
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# ═══ Node ═══
+node_modules/
+.next/
+out/
+
+# ═══ Docker ═══
+postgres-data/
+redis-data/
+
+# ═══ SSL ═══
+certbot/
+
+# ═══ Logs ═══
+*.log
+logs/
+
+# ═══ IDE ═══
+.vscode/
+.idea/
+*.swp
+
+# ═══ OS ═══
+.DS_Store
+Thumbs.db

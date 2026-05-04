@@ -1,0 +1,208 @@
+.container { animation: sa-fade-up 0.5s var(--sa-ease-luxe); }
+.skeleton { height: 400px; }
+
+.header { margin-bottom: 2.5rem; }
+.eyebrow {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--sa-gold);
+  margin-bottom: 0.4rem;
+}
+.title {
+  font-family: var(--sa-font-display);
+  font-size: 2.2rem;
+  font-weight: 300;
+  color: var(--sa-ivory);
+  margin-bottom: 0.5rem;
+}
+.title em { font-style: italic; color: var(--sa-gold); }
+.desc {
+  font-size: 0.95rem;
+  color: var(--sa-ivory-dim);
+  max-width: 640px;
+  font-weight: 300;
+}
+
+.section { margin-bottom: 3rem; }
+.sectionHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.sectionTitle {
+  font-family: var(--sa-font-display);
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--sa-ivory);
+}
+
+.filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.filter {
+  padding: 0.4rem 0.9rem;
+  background: transparent;
+  border: 1px solid rgba(201, 168, 76, 0.15);
+  color: var(--sa-ivory-dim);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.25s var(--sa-ease-luxe);
+}
+.filter:hover { border-color: var(--sa-gold-dim); color: var(--sa-gold); }
+.filterActive {
+  background: var(--sa-gold);
+  color: var(--sa-abyss);
+  border-color: var(--sa-gold);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: var(--sa-midnight);
+  border: 1px solid rgba(201, 168, 76, 0.06);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s var(--sa-ease-luxe);
+}
+.card:hover {
+  border-color: rgba(201, 168, 76, 0.2);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+.cardActive {
+  background: linear-gradient(170deg, rgba(74, 14, 46, 0.2), var(--sa-midnight));
+  border-color: rgba(201, 168, 76, 0.15);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.6rem;
+  gap: 0.5rem;
+}
+.cardName {
+  font-family: var(--sa-font-display);
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--sa-ivory);
+  line-height: 1.3;
+}
+.lockIcon { color: var(--sa-ivory-dim); flex-shrink: 0; }
+
+.cardDesc {
+  font-size: 0.85rem;
+  color: var(--sa-ivory-dim);
+  line-height: 1.6;
+  flex: 1;
+  margin-bottom: 1.2rem;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sectorTag {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sa-gold);
+  padding: 0.25rem 0.6rem;
+  border: 1px solid rgba(201, 168, 76, 0.2);
+}
+
+.btnActivate {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.9rem;
+  background: var(--sa-gold);
+  color: var(--sa-abyss);
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s var(--sa-ease-luxe);
+}
+.btnActivate:hover:not(:disabled) {
+  background: var(--sa-gold-bright);
+  transform: translateY(-1px);
+}
+.btnActivate:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btnRemove {
+  padding: 0.3rem 0.8rem;
+  background: transparent;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  color: var(--sa-error);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.btnRemove:hover {
+  background: rgba(231, 76, 60, 0.1);
+  border-color: var(--sa-error);
+}
+
+.activeBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  color: var(--sa-success);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.planLocked {
+  font-size: 0.7rem;
+  color: var(--sa-ivory-dim);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.toggle {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  background: var(--sa-slate);
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background 0.3s;
+  flex-shrink: 0;
+}
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: var(--sa-ivory);
+  border-radius: 50%;
+  transition: transform 0.3s var(--sa-ease-luxe);
+}
+.toggleOn { background: var(--sa-gold); }
+.toggleOn::after { transform: translateX(16px); }
