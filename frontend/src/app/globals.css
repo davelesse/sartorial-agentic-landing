@@ -1,0 +1,84 @@
+/* ═══════════════════════════════════════════════════════════
+   SARTORIAL AGENTIC — Global Design Tokens
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  /* Palette */
+  --sa-abyss:         #030810;
+  --sa-midnight:      #060E1A;
+  --sa-deep:          #0A1628;
+  --sa-ink:           #111D2E;
+  --sa-slate:         #1A2A40;
+  --sa-purple:        #4A0E2E;
+  --sa-purple-glow:   #6B1E4A;
+  --sa-purple-light:  #8B2E6A;
+  --sa-gold:          #C9A84C;
+  --sa-gold-dim:      #A68A3E;
+  --sa-gold-bright:   #E2C46A;
+  --sa-silver:        #D8DEE8;
+  --sa-silver-dim:    #A0A8B4;
+  --sa-ivory:         #F5F0EB;
+  --sa-ivory-dim:     #C8C0B5;
+
+  --sa-success:       #2ECC71;
+  --sa-warning:       #F39C12;
+  --sa-error:         #E74C3C;
+  --sa-info:          #3498DB;
+
+  /* Fonts */
+  --sa-font-display:  'Cormorant Garamond', 'Georgia', serif;
+  --sa-font-body:     'DM Sans', 'Helvetica Neue', sans-serif;
+  --sa-font-mono:     'JetBrains Mono', monospace;
+
+  /* Easing */
+  --sa-ease-luxe:    cubic-bezier(0.16, 1, 0.3, 1);
+  --sa-ease-smooth:  cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  font-family: var(--sa-font-body);
+  background: var(--sa-abyss);
+  color: var(--sa-ivory);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+
+button { font-family: inherit; cursor: pointer; }
+
+input, textarea, select {
+  font-family: inherit;
+  color: inherit;
+}
+
+::selection { background: var(--sa-purple); color: var(--sa-gold); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--sa-midnight); }
+::-webkit-scrollbar-thumb { background: var(--sa-slate); }
+::-webkit-scrollbar-thumb:hover { background: var(--sa-gold-dim); }
+
+/* Utility classes */
+.sa-text-gold { color: var(--sa-gold); }
+.sa-text-dim  { color: var(--sa-ivory-dim); }
+.sa-font-display { font-family: var(--sa-font-display); }
+
+/* Animations */
+@keyframes sa-fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes sa-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes sa-spin {
+  to { transform: rotate(360deg); }
+}
+
+.sa-animate-fade-up { animation: sa-fade-up 0.6s var(--sa-ease-luxe); }
+.sa-animate-fade-in { animation: sa-fade-in 0.4s var(--sa-ease-luxe); }

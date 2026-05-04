@@ -1,0 +1,57 @@
+# ═══════════════════════════════════════════════════════════
+# SARTORIAL AGENTIC — Python Dependencies
+# ═══════════════════════════════════════════════════════════
+
+# ── Core Framework ──
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+uvloop==0.21.0
+httptools==0.6.4
+
+# ── Database ──
+sqlalchemy[asyncio]==2.0.36
+asyncpg==0.30.0
+alembic==1.14.1
+psycopg2-binary==2.9.10
+
+# ── Redis & Task Queue ──
+redis==5.2.1
+celery[redis]==5.4.0
+
+# ── Auth & Security ──
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.17
+slowapi==0.1.9
+
+# ── Stripe ──
+stripe==11.4.1
+
+# ── AI / Agents ──
+anthropic==0.52.0
+langgraph==0.2.60
+langchain-core==0.3.28
+langchain-anthropic==0.3.1
+
+# ── Email ──
+resend==2.5.0
+
+# ── Validation & Serialization ──
+pydantic==2.10.4
+pydantic-settings==2.7.1
+email-validator==2.2.0
+
+# ── HTTP Client ──
+httpx==0.28.1
+
+# ── Utilities ──
+python-dotenv==1.0.1
+structlog==24.4.0
+tenacity==9.0.0
+orjson==3.10.13
+
+# ── Dev & Testing ──
+pytest==8.3.4
+pytest-asyncio==0.25.0
+pytest-cov==6.0.0
+ruff==0.8.6
