@@ -311,41 +311,51 @@ def dispatch_transactional_email(event_type, obj):
 
 @app.route('/dc-api/webhooks/stripe', methods=['POST'])
 def stripe_webhook():
-    """Reçoit le flux de l'Agent 24 (PHP) et le distribue aux Agents Python."""
-    payload = request.get_data(as_text=True)
-    sig_header = request.headers.get('Stripe-Signature', '')
+    """Reçoit le flux de l'Agent 24 (PHP) et le confie au Webhook Agent.
 
-    # Validation Ma'at (Vérification de la Signature de Stripe transmise par le PHP)
+    L'Agent (WebhookHandlerAgent) gère LUI-MÊME : vérification de la signature
+    (secret du tenant), parsing, dispatch vers les handlers _on_* et l'envoi
+    des emails (EmailSender). On lui passe donc le payload BRUT (bytes) et on
+    relaie son tuple de retour (code_http, corps).
+    """
+    payload = request.get_data()  # bytes bruts — requis pour la vérif HMAC
+    sig_header = request.headers.get('Stripe-Signature', '')
+    # Slug du tenant : par défaut le tenant souverain 'digital-colosse'
+    tenant_slug = request.headers.get('X-Tenant-Slug', 'digital-colosse')
+
+    # ── Voie normale : délégation au Webhook Agent ──
+    try:
+        from webhook_handler_agent import webhook_agent
+    except ImportError:
+        webhook_agent = None
+
+    if webhook_agent is not None:
+        try:
+            status, body = webhook_agent.handle_webhook(payload, sig_header, tenant_slug)
+            logger.info(f"✅ Webhook Agent → {status}")
+            return jsonify(body), status
+        except Exception as e:
+            logger.error(f"❌ Webhook Agent en échec : {e}")
+            return jsonify({'error': 'Erreur interne webhook'}), 500
+
+    # ── Secours natif (Agent absent) : vérif + emails brandés de repli ──
+    logger.info("ℹ️ Webhook Agent non connecté. Traitement natif de secours.")
+    payload_text = payload.decode('utf-8', errors='replace')
     if STRIPE_WEBHOOK_SECRET:
         try:
-            event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+            event = stripe.Webhook.construct_event(payload_text, sig_header, STRIPE_WEBHOOK_SECRET)
         except Exception as e:
             logger.error(f"❌ Webhook rejeté : {e}")
             return jsonify({'error': 'Signature invalide'}), 400
     else:
         try:
-            event = json.loads(payload)
-        except:
+            event = json.loads(payload_text)
+        except Exception:
             return jsonify({'error': 'JSON invalide'}), 400
 
     event_type = event.get('type', '')
     event_data = event.get('data', {}).get('object', {})
-    logger.info(f"📨 Onde de choc reçue via Agent 24 : {event_type}")
-
-    # Délégation aux Agents de l'Orchestrateur si connectés
-    try:
-        from webhook_handler_agent import webhook_agent
-        webhook_agent.handle_event(event_type, event_data)
-        logger.info("✅ Événement absorbé par le Webhook Agent.")
-    except ImportError:
-        logger.info("ℹ️ Agents non connectés. Traitement natif exécuté.")
-        # Logique de secours native
-        if event_type == 'checkout.session.completed':
-            logger.info(f"🛒 Paiement confirmé : {event_data.get('metadata', {}).get('product_id', 'Inconnu')}")
-
-    # Emails transactionnels brandés (bienvenue Oracle, facture, échec paiement).
-    # NB : exécuté ici quel que soit le webhook_agent. Si webhook_agent envoie
-    # déjà ces emails, retirer cet appel pour éviter les doublons.
+    logger.info(f"📨 (secours natif) Onde de choc : {event_type}")
     dispatch_transactional_email(event_type, event_data)
 
     return jsonify({'status': 'ok'}), 200
