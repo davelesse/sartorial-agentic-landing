@@ -330,6 +330,14 @@ def stripe_webhook():
         webhook_agent = None
 
     if webhook_agent is not None:
+        # Garantir l'enregistrement du tenant souverain (idempotent).
+        # L'agent n'auto-enregistre pas son tenant par défaut au chargement.
+        try:
+            if tenant_slug not in getattr(webhook_agent, 'tenants', {}):
+                webhook_agent.register_default_tenant()
+                logger.info(f"🏛️ Tenant par défaut enregistré ({tenant_slug}).")
+        except Exception as e:
+            logger.error(f"⚠️ Enregistrement tenant '{tenant_slug}' impossible : {e}")
         try:
             status, body = webhook_agent.handle_webhook(payload, sig_header, tenant_slug)
             logger.info(f"✅ Webhook Agent → {status}")
