@@ -29,7 +29,7 @@ def generate_invoice_pdf(invoice_number, invoice_date, customer_name,
     WHITE=HexColor("#ffffff"); MUTED=HexColor("#666666")
 
     sym = "€" if currency == "EUR" else ("$" if currency == "USD" else currency)
-    def fmt(v): return f"{v:,.2f} {sym}".replace(",", " ")
+    def fmt(v): return f"{v:,.2f} {sym}".replace(",", " ")
     def ps(name, size=10, color=WHITE, font="Helvetica",
            align=TA_LEFT, leading=16, spacing=0):
         return ParagraphStyle(name, fontSize=size, textColor=color, fontName=font,
@@ -150,10 +150,8 @@ def send_invoice_email(to_email, customer_name, plan_name, amount,
                        invoice_number=None, tenant_id="default",
                        customer_address="", customer_country="",
                        currency="EUR"):
-    import smtplib, logging
-    from email.mime.multipart import MIMEMultipart
+    import smtplib, logging, secrets
     from email.mime.text import MIMEText
-    from email.mime.application import MIMEApplication
     logger = logging.getLogger("InvoiceGenerator")
 
     smtp_host     = os.getenv("SMTP_HOST","")
@@ -179,21 +177,7 @@ def send_invoice_email(to_email, customer_name, plan_name, amount,
     plan_label = PLAN_DB.get(plan_name.lower().strip(), plan_name.upper())
     sym = "€" if currency == "EUR" else "$"
 
-    try:
-        from email_templates import email_engine
-        subject, html = email_engine.render(
-            "invoice", tenant_id,
-            customer_name=customer_name,
-            invoice_number=invoice_number,
-            invoice_date=invoice_date,
-            plan_label=plan_label,
-            amount=f"{amount:.2f} {sym}",
-            amount_ht=f"{amount:.2f} {sym}",
-            amount_tva="0.00 (exempt)",
-        )
-    except Exception as e:
-        logger.error("Erreur template : " + str(e)); return False
-
+    # 1) Generer le PDF
     try:
         pdf_bytes = generate_invoice_pdf(
             invoice_number=invoice_number, invoice_date=invoice_date,
@@ -204,18 +188,44 @@ def send_invoice_email(to_email, customer_name, plan_name, amount,
     except Exception as e:
         logger.error("Erreur PDF : " + str(e)); return False
 
+    # 2) Enregistrer le PDF dans un dossier web public.
+    #    Hostinger/MailChannels rejette les pieces jointes -> lien de telechargement.
+    invoice_url = ""
     try:
-        msg = MIMEMultipart("mixed")
+        invoice_dir = os.getenv("INVOICE_DIR",
+                                "/var/www/digital-colosse.com/public_html/factures")
+        site_url    = os.getenv("SITE_URL", "https://digital-colosse.com").rstrip("/")
+        os.makedirs(invoice_dir, exist_ok=True)
+        filename = invoice_number + "-" + secrets.token_urlsafe(16) + ".pdf"
+        with open(os.path.join(invoice_dir, filename), "wb") as f:
+            f.write(pdf_bytes)
+        invoice_url = site_url + "/factures/" + filename
+    except Exception as e:
+        logger.error("Erreur sauvegarde PDF : " + str(e))
+
+    # 3) Rendre l'email brande (avec le lien de telechargement)
+    try:
+        from email_templates import email_engine
+        subject, html = email_engine.render(
+            "invoice", tenant_id,
+            customer_name=customer_name,
+            invoice_number=invoice_number,
+            invoice_date=invoice_date,
+            plan_label=plan_label,
+            amount=f"{amount:.2f} {sym}",
+            amount_ht=f"{amount:.2f} {sym}",
+            amount_tva="0.00 (exempt)",
+            invoice_url=invoice_url,
+        )
+    except Exception as e:
+        logger.error("Erreur template : " + str(e)); return False
+
+    # 4) Envoyer SANS piece jointe (sinon rejet MailChannels)
+    try:
+        msg = MIMEText(html, "html", "utf-8")
         msg["Subject"] = subject
-        msg["From"]    = "Digital Colosse — Billing <" + from_email + ">"
+        msg["From"]    = "Digital Colosse Billing <" + from_email + ">"
         msg["To"]      = to_email
-        alt = MIMEMultipart("alternative")
-        alt.attach(MIMEText(html, "html", "utf-8"))
-        msg.attach(alt)
-        pdf_part = MIMEApplication(pdf_bytes, _subtype="pdf")
-        pdf_part.add_header("Content-Disposition", "attachment",
-                            filename=invoice_number + ".pdf")
-        msg.attach(pdf_part)
 
         if smtp_port == 465:
             import ssl
@@ -229,7 +239,7 @@ def send_invoice_email(to_email, customer_name, plan_name, amount,
                 s.login(smtp_user, smtp_password)
                 s.sendmail(from_email, to_email, msg.as_string())
 
-        logger.info("Facture " + invoice_number + " envoyee -> " + to_email)
+        logger.info("Facture " + invoice_number + " envoyee (lien) -> " + to_email)
         return True
     except Exception as e:
         logger.error("Erreur SMTP : " + str(e)); return False

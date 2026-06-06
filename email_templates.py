@@ -841,7 +841,8 @@ class EmailTemplateEngine:
         return subject, _base_layout(content, brand)
 
     def _render_invoice(self, lang, brand, tenant_id, **kw):
-        oracle_url = 'https://digital-colosse.com/solaris.php'
+        oracle_url  = 'https://digital-colosse.com/solaris.php'
+        invoice_url = kw.get('invoice_url', '')
         amount     = kw.get('amount','')
         plan_label = kw.get('plan_label','')
         inv_number = kw.get('invoice_number','')
@@ -856,17 +857,50 @@ class EmailTemplateEngine:
             _info_row(self._t('invoice','label_tva',lang),     amount_tva, brand),
             _info_row(self._t('invoice','label_ttc',lang),     amount,     brand),
         ]
-        content = ''.join([
+
+        # Hostinger/MailChannels bloque les PJ -> on envoie la facture en lien.
+        dl_label = {
+            'fr':'Télécharger ma facture (PDF) →', 'en':'Download my invoice (PDF) →',
+            'nl':'Mijn factuur downloaden (PDF) →', 'de':'Meine Rechnung herunterladen (PDF) →',
+            'es':'Descargar mi factura (PDF) →',
+        }.get(lang, 'Télécharger ma facture (PDF) →')
+        if invoice_url:
+            body_html = {
+                'fr':("Voici votre facture <strong style=\"color:#D4AF37;\">{n}</strong> d'un montant de "
+                      "<strong style=\"color:#D4AF37;\">{a}</strong> pour votre abonnement <strong>{p}</strong>. "
+                      "Téléchargez-la via le bouton ci-dessous."),
+                'en':("Here is your invoice <strong style=\"color:#D4AF37;\">{n}</strong> for "
+                      "<strong style=\"color:#D4AF37;\">{a}</strong> for your <strong>{p}</strong> subscription. "
+                      "Download it using the button below."),
+                'nl':("Hierbij uw factuur <strong style=\"color:#D4AF37;\">{n}</strong> van "
+                      "<strong style=\"color:#D4AF37;\">{a}</strong>. Download via de knop hieronder."),
+                'de':("Hier ist Ihre Rechnung <strong style=\"color:#D4AF37;\">{n}</strong> über "
+                      "<strong style=\"color:#D4AF37;\">{a}</strong>. Herunterladen über die Schaltfläche unten."),
+                'es':("Aquí está su factura <strong style=\"color:#D4AF37;\">{n}</strong> por "
+                      "<strong style=\"color:#D4AF37;\">{a}</strong>. Descárguela con el botón de abajo."),
+            }.get(lang, "Voici votre facture {n} ({a}).").format(n=inv_number, a=amount, p=plan_label)
+        else:
+            body_html = self._t('invoice','body',lang,**kw)
+
+        parts = [
             _badge('FACTURE', brand, brand['primary_color']),
             '<br><br>',
             _heading(self._t('invoice','greeting',lang,**kw), brand),
-            _text(self._t('invoice','body',lang,**kw), brand),
+            _text(body_html, brand),
             _info_table(rows, brand),
-            _button(self._t('invoice','btn',lang), oracle_url, brand),
+        ]
+        if invoice_url:
+            parts.append(_button(dl_label, invoice_url, brand))                       # bouton principal (or)
+            parts.append(_button(self._t('invoice','btn',lang), oracle_url, brand,
+                                 brand['accent_color']))                              # secondaire (turquoise)
+        else:
+            parts.append(_button(self._t('invoice','btn',lang), oracle_url, brand))
+        parts += [
             _divider(brand),
             _text_small(self._t('invoice','footer_note',lang), brand),
             _signature(brand['sender_name'], brand),
-        ])
+        ]
+        content = ''.join(parts)
         subject = self._t('invoice','subject',lang,**kw)
         return subject, _base_layout(content, brand)
 
