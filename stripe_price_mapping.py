@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 """
 STRIPE PRICE MAPPING — Généré automatiquement par StripeProductAgent
-Dernière mise à jour : 2026-04-07 23:07:42
-Produits actifs : 22
+Dernière mise à jour : 2026-06-07
+Produits actifs : 26
 
-NE PAS MODIFIER MANUELLEMENT.
+NB : ajout manuel des 4 packs Oracle (pack_ether / pack_essence /
+pack_paradise / pack_souverain) — présents au catalogue mais absents du
+mapping auto-généré, ce qui provoquait une erreur 500 au checkout.
 """
 
 
@@ -30,6 +32,12 @@ STRIPE_PRICE_MAP = {
     'pack_empire': 'price_1TJUvkFijambRNPlVgrVs07H',    # PACK EMPIRE — 147€
     'pack_fondation': 'price_1TJJVEFijambRNPlqVB8Ylnd',    # PACK FONDATION — 797€
     'pack_titan': 'price_1TJiigFijambRNPlfX5TdBR0',    # Offre Titan — 297.0€
+
+    # ── PACKS ORACLE ──
+    'pack_ether': 'price_1TOAYdFijambRNPl2x1DvneB',    # Pack Ether — 347€
+    'pack_essence': 'price_1TOAYdFijambRNPl0JBPgsOK',    # Pack Essence — 147€
+    'pack_paradise': 'price_1TOAYdFijambRNPlr30CICD6',    # Pack Paradise — 997€
+    'pack_souverain': 'price_1TOAYeFijambRNPlteSW4jMH',    # Pack Souverain — 2997€
 
     # ── PLANS SaaS ──
     'plan_commission_only': 'price_1TH0qjFijambRNPlgq1g7asL',    # Commission Only — 0€/month
