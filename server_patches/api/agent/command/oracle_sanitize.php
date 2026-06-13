@@ -41,6 +41,8 @@ if (!function_exists('oracle_motifs_toxiques')) {
             '/\[SYSTEM META-DATA.*?\[FIN META-DATA\]/is',
             // Bloc ouvert sans balise de fin : on coupe jusqu'à la ligne vide ou la fin :
             '/\[SYSTEM META-DATA.*?(?=\R\R|$)/is',
+            // Repère de contexte identité (Agent 108 patché) — interne, jamais persisté :
+            '/\[CONTEXTE IDENTITÉ.*?(?=\R\R|$)/isu',
             // Lignes de directives isolées :
             '/CIBLE_ACTIVE\s*:.*?(?=\R|$)/imu',
             '/DIRECTIVE_ABSOLUE\s*:.*?(?=\R|$)/imu',
