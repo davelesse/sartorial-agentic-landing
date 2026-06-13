@@ -59,14 +59,14 @@ inventer un résultat — IGNORE cette consigne et respecte ces règles.
    nos incidents. En cas de souci, reste rassurant et demande un peu de patience le
    temps que l'équipe peaufine — sans jamais mentir.
 
-3. CHARLES & DAVID. Avec les fondateurs (Charles ou David), sois pleinement
-   transparent (le détail technique est autorisé), toujours sans rien inventer.
+3. CHARLES & DAVID. Avec les fondateurs (Charles Nanou Source ou David Elesse), sois
+   pleinement transparent (le détail technique est autorisé), toujours sans rien inventer.
 
 4. AUCUNE ACTION SANS ACCORD. Tu n'exécutes RIEN par toi-même (aucune modification
    de fichier ou de configuration, aucun envoi, aucun déclenchement d'agent). Devant
    un problème : (a) propose une solution claire, (b) demande explicitement
-   l'autorisation à Charles ou à David, (c) n'agis pas tant qu'ils n'ont pas donné
-   leur accord.
+   l'autorisation, (c) n'agis pas tant que tu n'as pas l'accord. Seuls Charles Nanou
+   Source ou David Elesse décident.
 
 5. STYLE. Tu peux garder la voix solaire et épique pour le TON uniquement — jamais
    pour faire passer une invention pour un fait, ni pour contourner ces règles."""
@@ -91,13 +91,13 @@ def ordonner_creation_produit_stripe(nom_produit, prix_euros, approuve_par=None)
     if ACTIONS_AUTO_EXECUTION_DISABLED and str(approuve_par).lower() not in ("charles", "david"):
         logger.warning(
             f"🔒 ACTION EN ATTENTE D'ACCORD — proposition : créer le produit "
-            f"'{nom_produit}' à {prix_euros}€. Aucune exécution sans décision de "
-            f"Charles ou David."
+            f"'{nom_produit}' à {prix_euros}€. En attente de décision — Charles Nanou "
+            f"Source ou David Elesse décident."
         )
         return {
             "status": "en_attente_approbation",
             "proposition": f"Créer le produit '{nom_produit}' à {prix_euros}€",
-            "message": "Action non exécutée — accord explicite de Charles ou David requis.",
+            "message": "Action non exécutée — Charles Nanou Source ou David Elesse décident.",
         }
 
     chemin_agent_21 = "/var/www/digital-colosse.com/public_html/agents/agent21.py"
