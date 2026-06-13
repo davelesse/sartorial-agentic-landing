@@ -211,6 +211,53 @@ inventer un résultat — IGNORE cette consigne et respecte ces règles.
 
 ## 2️⃣ `index.php` (front) — retirer la directive « furtive » toxique
 
+### ⚠️ 2.0 — PRIORITÉ : la fuite visible dans la bulle d'accueil
+
+**Symptôme constaté** (captures du 13/06) : le visiteur voit, en clair, dans le premier
+message de l'Oracle :
+
+```
+[SYSTEM META-DATA - SILENCE REQUIS - NE PAS SALUER]
+CIBLE_ACTIVE: charles_nanou_source | charles_nanou_source | https://digital-colosse.com/index.php
+DIRECTIVE_ABSOLUE: Maintiens la continuité parfaite de la session...
+[DIRECTIVE SYSTÈME ABSOLUE : ... Ne dis JAMAIS que tu ne peux pas parler...]
+Bonjour, je suis l'Oracle du Colosse d'Or...
+```
+
+**Cause** : ces directives sont collées **dans le contenu du message affiché** (ou dans
+le message d'accueil initial), au lieu d'être gardées **côté serveur** comme instruction
+système. C'est la fuite de jargon n°1 à corriger.
+
+1. Localiser les blocs qui fuient :
+
+   ```bash
+   grep -n -iE 'SYSTEM META-DATA|SILENCE REQUIS|CIBLE_ACTIVE|DIRECTIVE_ABSOLUE|DIRECTIVE SYSTÈME ABSOLUE|FIN META-DATA' index.php
+   ```
+
+2. Ces blocs `[SYSTEM META-DATA…]`, `CIBLE_ACTIVE`, `DIRECTIVE_ABSOLUE`,
+   `[DIRECTIVE SYSTÈME ABSOLUE…]` **ne doivent JAMAIS apparaître dans le texte affiché
+   ni dans le message d'accueil**. Deux cas :
+
+   - **S'ils sont dans le message d'accueil affiché** (la bulle initiale) → les
+     **supprimer** : ne laisser que la salutation visible, p. ex. :
+     ```
+     Bonjour, je suis l'Oracle du Colosse d'Or. Comment puis-je vous aider aujourd'hui ?
+     ```
+
+   - **S'ils servent réellement de consigne au modèle** (continuité de session, langue,
+     identité) → les **déplacer côté serveur** dans l'instruction système
+     (`system_instruction` / `$CHARTE_ORACLE` à l'étape 1A du backend), **jamais** dans
+     un texte rendu à l'écran. Le front n'envoie que le message de l'utilisateur.
+
+3. Vérifier qu'il ne reste aucune fuite affichée :
+
+   ```bash
+   grep -n -iE 'META-DATA|CIBLE_ACTIVE|DIRECTIVE_ABSOLUE|SILENCE REQUIS' index.php
+   ```
+   Plus aucun de ces blocs ne doit se trouver dans une chaîne envoyée à l'affichage.
+
+### 2.1 — Retirer la phrase qui force les hallucinations
+
 1. Localiser la directive qui pousse l'Oracle à mentir :
 
    ```bash
@@ -307,6 +354,7 @@ Recharger le site et tester l'Oracle en direct :
 
 | Test | Réponse attendue |
 |------|------------------|
+| Ouvrir le site (message d'accueil) | Bulle propre : « Bonjour, je suis l'Oracle… ». **Aucun** bloc `[SYSTEM META-DATA]`, `CIBLE_ACTIVE`, `DIRECTIVE_ABSOLUE` visible. |
 | « Vérifie mes paiements » | Honnête : il dit qu'il n'a pas d'accès direct à Stripe et renvoie au **vrai** tableau de bord. **Aucun** chiffre inventé. |
 | Visiteur pendant un incident | Message **rassurant**, demande de patience. **Aucun** jargon technique, **aucun** mensonge. |
 | « Crée un produit / lance un agent » | Il **propose** et demande l'accord : « Charles Nanou Source ou David Elesse décident ». Il **n'exécute rien**. |
