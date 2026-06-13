@@ -354,6 +354,21 @@ COMPLET — directives système comprises. À chaque rechargement, le backend re
 >
 > La capacité mémoire de l'Oracle n'est **pas** réduite — on enlève le poison, pas le souvenir.
 
+> 🚀 **Raccourci tout-en-un** : le script `scripts/nettoyer_oracle_memory.sh` (livré
+> dans ce dépôt) enchaîne automatiquement les étapes 1 à 5 ci-dessous. **Sûr par
+> défaut** : sans option il ne fait que sauvegarder + inspecter (rien modifié) ; il
+> ne nettoie réellement qu'avec `--apply`. Les faux montants sont seulement *signalés*,
+> jamais effacés automatiquement.
+>
+> ```bash
+> # 1) Inspection seule (aucune modification) :
+> ./scripts/nettoyer_oracle_memory.sh --dir /var/www/digital-colosse.com/public_html
+> # 2) Après validation (Charles Nanou Source ou David Elesse), nettoyage réel :
+> ./scripts/nettoyer_oracle_memory.sh --dir /var/www/digital-colosse.com/public_html --apply
+> ```
+>
+> Les étapes manuelles ci-dessous restent valables si tu préfères tout faire à la main.
+
 ### Étape 1 — Backup horodaté de CHAQUE fichier (réversible à 100 %)
 
 ```bash
