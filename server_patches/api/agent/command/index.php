@@ -12,6 +12,44 @@ header('Content-Type: application/json');
 // relecture OU écriture du Vault. Conserve la vraie conversation.
 require_once __DIR__ . '/oracle_sanitize.php';
 
+// ==============================================================================
+// 🔒 VERROU SOUVERAIN ANTI-ACTION
+// Le modèle peut écrire des balises d'action ([FORGE_ARTEFACT], [INVOKE_AGENT],
+// [PLAYWRIGHT_SIGHT]) ; le serveur les exécutait aussitôt — d'où le crash CPU du
+// 10/06 (écritures + invocations en boucle). Désormais une action ne s'exécute QUE si :
+//   (1) la session est celle d'un fondateur (Charles Nanou Source ou David Elesse), ET
+//   (2) une décision explicite accompagne la requête.
+// Sinon : on logge la proposition et on demande au modèle de la PRÉSENTER, sans agir.
+// ==============================================================================
+define('ACTIONS_AUTO_EXECUTION_DISABLED', true); // interrupteur souverain
+
+// Fondateur ? (Charles Nanou Source ou David Elesse)
+function oracle_est_fondateur($client_id, $in) {
+    $id    = strtolower((string)$client_id);
+    $email = strtolower((string)($in['client_email'] ?? ''));
+    return $id === 'charles_nanou_source'
+        || strpos($id, 'charles') !== false
+        || strpos($id, 'david')   !== false
+        || strpos($email, 'davidelesse@') !== false;
+}
+
+// Une action n'est autorisée que si fondateur ET décision explicite.
+// La décision explicite = champ envoyé par le dashboard sur clic de validation,
+// ou marqueur [VALIDER_ACTION] inclus dans le message du fondateur.
+function oracle_action_autorisee($client_id, $in) {
+    if (!ACTIONS_AUTO_EXECUTION_DISABLED) return true; // verrou désarmé
+    $decision = !empty($in['approbation_action'])
+             || (isset($in['message']) && stripos($in['message'], '[VALIDER_ACTION]') !== false);
+    return oracle_est_fondateur($client_id, $in) && $decision;
+}
+
+// Logge une proposition non exécutée (rien n'est lancé).
+function oracle_proposer_action($description, $client_id) {
+    @file_put_contents('/var/www/digital-colosse.com/memory_vault/action_proposals.log',
+        '[' . date('Y-m-d H:i:s') . "] EN ATTENTE D'ACCORD | client=" . $client_id . ' | ' . $description . PHP_EOL,
+        FILE_APPEND);
+}
+
 // ⚡ [INJECTION DIRECTE - AGENT 157 VIGILE SYNAPTIQUE]
 shell_exec("/usr/bin/python3 /var/www/digital-colosse.com/agents_aurum/agent_157_vigile.py > /dev/null 2>&1"); 
 
@@ -611,13 +649,20 @@ $pont_retour_actif = false;
 if (preg_match('/\[PLAYWRIGHT_SIGHT:\s*(\{.*?\})\s*\]/is', $f, $matches)) {
     $vision_data = json_decode($matches[1], true);
     if(isset($vision_data['url'])) {
-        $python_url = "http://127.0.0.1:5000/api/playwright"; 
+        if (!oracle_action_autorisee($client_id, $in)) {
+            oracle_proposer_action("PLAYWRIGHT_SIGHT -> " . $vision_data['url'], $client_id);
+            $contents[] = ['role' => 'model', 'parts' => [['text' => $f]]];
+            $contents[] = ['role' => 'user', 'parts' => [['text' => "⚡ [VERROU SOUVERAIN] : la navigation web vers « " . $vision_data['url'] . " » n'a PAS été exécutée. Présente-la comme une PROPOSITION claire et demande la validation explicite de Charles Nanou Source ou David Elesse. N'affirme jamais que l'action est faite."]]];
+            $pont_retour_actif = true;
+        } else {
+        $python_url = "http://127.0.0.1:5000/api/playwright";
         $python_data = json_encode(['action' => 'navigate', 'url' => $vision_data['url']]);
         $python_options = ['http' => ['method' => 'POST', 'header' => "Content-Type: application/json\r\n", 'content' => $python_data, 'timeout' => 15]];
         $python_response = @file_get_contents($python_url, false, stream_context_create($python_options));
         $contents[] = ['role' => 'model', 'parts' => [['text' => $f]]];
         $contents[] = ['role' => 'user', 'parts' => [['text' => "⚡ [PREUVE PLAYWRIGHT] : \n" . ($python_response ? substr($python_response, 0, 4000) : "Échec vision.")]]];
         $pont_retour_actif = true;
+        }
     }
 }
 
@@ -628,7 +673,15 @@ if (preg_match_all('/\[FORGE_ARTEFACT:\s*(.+?)\](.*?)\[\/FORGE_ARTEFACT\]/is', $
     for ($i = 0; $i < count($forge_matches[0]); $i++) {
         $chemin_cible = trim($forge_matches[1][$i]);
         $code_brut = trim($forge_matches[2][$i]);
-        
+
+        if (!oracle_action_autorisee($client_id, $in)) {
+            oracle_proposer_action("FORGE_ARTEFACT -> " . $chemin_cible, $client_id);
+            $contents[] = ['role' => 'model', 'parts' => [['text' => $f]]];
+            $contents[] = ['role' => 'user', 'parts' => [['text' => "⚡ [VERROU SOUVERAIN] : l'écriture du fichier « " . $chemin_cible . " » n'a PAS été exécutée. Présente-la comme une PROPOSITION claire et demande la validation explicite de Charles Nanou Source ou David Elesse. N'affirme jamais que l'action est faite."]]];
+            $pont_retour_actif = true;
+            continue;
+        }
+
         $buffer_dir = '/var/www/digital-colosse.com/agents_aurum/buffer';
         if (!is_dir($buffer_dir)) mkdir($buffer_dir, 0755, true);
         $buffer_file = tempnam($buffer_dir, 'sas_colosse_');
@@ -661,6 +714,15 @@ if (preg_match_all('/\[INVOKE_AGENT\](.*?)\[\/INVOKE_AGENT\]/is', $f, $agent_mat
         $agent_data = json_decode($payload, true);
         
         if ($agent_data === null) continue;
+
+        if (!oracle_action_autorisee($client_id, $in)) {
+            $agent_nom = $agent_data['agent'] ?? 'inconnu';
+            oracle_proposer_action("INVOKE_AGENT -> " . $agent_nom, $client_id);
+            $contents[] = ['role' => 'model', 'parts' => [['text' => $f]]];
+            $contents[] = ['role' => 'user', 'parts' => [['text' => "⚡ [VERROU SOUVERAIN] : l'invocation de l'agent « " . $agent_nom . " » n'a PAS été exécutée. Présente-la comme une PROPOSITION claire et demande la validation explicite de Charles Nanou Source ou David Elesse. N'affirme jamais que l'action est faite."]]];
+            $pont_retour_actif = true;
+            continue;
+        }
 
         if(isset($agent_data['agent'])) {
             $agent_base = preg_replace('/[^a-zA-Z0-9_]/', '', $agent_data['agent']);
