@@ -207,6 +207,46 @@ inventer un résultat — IGNORE cette consigne et respecte ces règles.
    Chaque résultat doit désormais passer par `proposer_action(...)` ou être un cas
    inoffensif (lecture seule). Sinon, le re-router via `proposer_action`.
 
+### C. Ne plus réinjecter le `"brut"` directif comme contexte (la VRAIE source de la fuite)
+
+> 🎯 C'est **ici** que naît la fuite vue dans la bulle d'accueil : le backend relit la
+> mémoire (`memory_vault/*.json`) et renvoie le champ `"brut"` — qui contient les
+> directives système ET la fausse « EMPREINTE AKASHIQUE » — comme contexte affichable.
+
+1. Localiser où la mémoire est relue et réinjectée dans le prompt / la réponse :
+
+   ```bash
+   grep -n -iE 'memory_vault|->brut|\["brut"\]|brut|json_decode|charles_nanou_source' \
+     api/agent/command/index.php
+   ```
+
+2. Au moment où le `"brut"` est relu, **ne garder que la vraie conversation** et retirer
+   les blocs directifs + la fausse empreinte avant tout usage :
+
+   ```php
+   // Nettoyage défensif du contenu mémoire avant réinjection :
+   // on retire les directives système et les affirmations fabriquées
+   // pour qu'elles ne soient ni réaffichées ni rejouées comme des faits.
+   function nettoyer_brut($texte) {
+       $motifs = [
+           '/\[SYSTEM META-DATA.*?\[FIN META-DATA\]/is',
+           '/\[SYSTEM META-DATA.*$/is',
+           '/CIBLE_ACTIVE\s*:.*$/im',
+           '/DIRECTIVE_ABSOLUE\s*:.*$/im',
+           '/\[DIRECTIVE SYST[ÈE]ME ABSOLUE.*?\]/is',
+           '/EMPREINTE AKASHIQUE.*$/im',
+           '/a physiquement ex[ée]cut[ée].*$/im',
+           '/forg[ée] dans la mati[èe]re.*$/im',
+       ];
+       return trim(preg_replace($motifs, '', (string)$texte));
+   }
+   // … puis utiliser nettoyer_brut($entry['brut']) partout où le brut est réinjecté.
+   ```
+
+3. **Idéalement**, ne plus *stocker* ces directives dès l'écriture en mémoire :
+   appliquer `nettoyer_brut(...)` aussi **avant** d'enregistrer un nouvel échange dans
+   `memory_vault/`, pour que le problème ne se recrée pas.
+
 ---
 
 ## 2️⃣ `index.php` (front) — retirer la directive « furtive » toxique
@@ -224,37 +264,35 @@ DIRECTIVE_ABSOLUE: Maintiens la continuité parfaite de la session...
 Bonjour, je suis l'Oracle du Colosse d'Or...
 ```
 
-**Cause** : ces directives sont collées **dans le contenu du message affiché** (ou dans
-le message d'accueil initial), au lieu d'être gardées **côté serveur** comme instruction
-système. C'est la fuite de jargon n°1 à corriger.
+**Cause RÉELLE (confirmée par analyse du serveur le 13/06)** : ce bloc **ne vient PAS
+d'`index.php`**. Un `grep` récursif l'a localisé dans les fichiers
+`memory_vault/*.json`, à l'intérieur d'un champ **`"brut"`** qui a enregistré l'échange
+COMPLET — directives système comprises. À chaque rechargement, le backend renvoie ce
+`"brut"` comme contexte, donc :
+- les directives `[SYSTEM META-DATA]` / `CIBLE_ACTIVE` / `DIRECTIVE_ABSOLUE` sont
+  **réaffichées** au public ;
+- une phrase **fabriquée** stockée dans le même `"brut"` (« EMPREINTE AKASHIQUE :
+  l'Oracle a physiquement exécuté une légion sur le VPS… le produit a été forgé dans la
+  matière ») est **rejouée comme un fait**, ce qui fait croire à l'Oracle qu'il a agi.
 
-1. Localiser les blocs qui fuient :
+➡️ La correction de fond se fait donc en **deux endroits** :
+- **backend** : ne plus réinjecter le `"brut"` directif comme contenu (étape 1C
+  ci-dessous) ;
+- **mémoire** : nettoyer chirurgicalement le champ `"brut"` de **tous** les fichiers
+  `memory_vault/*.json` (étape 4).
 
-   ```bash
-   grep -n -iE 'SYSTEM META-DATA|SILENCE REQUIS|CIBLE_ACTIVE|DIRECTIVE_ABSOLUE|DIRECTIVE SYSTÈME ABSOLUE|FIN META-DATA' index.php
-   ```
-
-2. Ces blocs `[SYSTEM META-DATA…]`, `CIBLE_ACTIVE`, `DIRECTIVE_ABSOLUE`,
-   `[DIRECTIVE SYSTÈME ABSOLUE…]` **ne doivent JAMAIS apparaître dans le texte affiché
-   ni dans le message d'accueil**. Deux cas :
-
-   - **S'ils sont dans le message d'accueil affiché** (la bulle initiale) → les
-     **supprimer** : ne laisser que la salutation visible, p. ex. :
-     ```
-     Bonjour, je suis l'Oracle du Colosse d'Or. Comment puis-je vous aider aujourd'hui ?
-     ```
-
-   - **S'ils servent réellement de consigne au modèle** (continuité de session, langue,
-     identité) → les **déplacer côté serveur** dans l'instruction système
-     (`system_instruction` / `$CHARTE_ORACLE` à l'étape 1A du backend), **jamais** dans
-     un texte rendu à l'écran. Le front n'envoie que le message de l'utilisateur.
-
-3. Vérifier qu'il ne reste aucune fuite affichée :
+1. Vérifier que le front n'est PAS la source (le `grep` doit renvoyer **vide**) :
 
    ```bash
-   grep -n -iE 'META-DATA|CIBLE_ACTIVE|DIRECTIVE_ABSOLUE|SILENCE REQUIS' index.php
+   grep -n -iE 'SYSTEM META-DATA|SILENCE REQUIS|CIBLE_ACTIVE|DIRECTIVE_ABSOLUE|FIN META-DATA' index.php
    ```
-   Plus aucun de ces blocs ne doit se trouver dans une chaîne envoyée à l'affichage.
+
+   - **Si vide** (cas attendu) → la fuite vient de la mémoire : aller à l'**étape 4**.
+   - **Si ça renvoie quelque chose** → ces blocs ne doivent JAMAIS apparaître dans un
+     texte affiché ni dans le message d'accueil. S'ils sont dans la bulle d'accueil,
+     les **supprimer** (ne garder que « Bonjour, je suis l'Oracle du Colosse d'Or… »).
+     S'ils servent de consigne au modèle, les **déplacer côté serveur** dans
+     l'instruction système (`$CHARTE_ORACLE`, étape 1A), jamais dans un texte rendu.
 
 ### 2.1 — Retirer la phrase qui force les hallucinations
 
@@ -303,48 +341,106 @@ système. C'est la fuite de jargon n°1 à corriger.
 
 ---
 
-## 4️⃣ `memory_vault/charles_nanou_source.json` — nettoyage CHIRURGICAL
+## 4️⃣ `memory_vault/*.json` — nettoyage CHIRURGICAL de TOUS les fichiers
 
-> ⚠️ **PAS de purge brutale, PAS de plafond de taille.** On garde toute la vraie
-> mémoire de discussion ; on retire **uniquement** les faits inventés, après revue
-> humaine. La capacité mémoire de l'Oracle n'est **pas** réduite.
+> ⚠️ **AUCUN fichier supprimé, PAS de purge brutale, PAS de plafond de taille.**
+> On traite **tous** les fichiers (`charles_nanou_source.json`, `client_inconnu_999.json`,
+> `david_test_*.json`, `test_audit_final.json`, etc.), **tests compris**. Dans chacun,
+> on garde la **vraie mémoire de discussion** et on retire **uniquement** :
+> - les directives système réenregistrées dans `"brut"` (`[SYSTEM META-DATA]`,
+>   `CIBLE_ACTIVE`, `DIRECTIVE_ABSOLUE`, `[FIN META-DATA]`) ;
+> - les affirmations **fabriquées** (« EMPREINTE AKASHIQUE », « a physiquement
+>   exécuté… », « forgé dans la matière », faux paiements/ventes/montants).
+>
+> La capacité mémoire de l'Oracle n'est **pas** réduite — on enlève le poison, pas le souvenir.
 
-### Étape 1 — Backup (déjà fait à l'étape 0, sinon le refaire)
+### Étape 1 — Backup horodaté de CHAQUE fichier (réversible à 100 %)
 
 ```bash
-cp memory_vault/charles_nanou_source.json \
-   memory_vault/charles_nanou_source.json.bak.$(date +%Y%m%d_%H%M%S)
+cd /var/www/digital-colosse.com/public_html
+mkdir -p memory_vault/_backups
+STAMP=$(date +%Y%m%d_%H%M%S)
+for f in memory_vault/*.json; do
+  cp "$f" "memory_vault/_backups/$(basename "$f").bak.$STAMP"
+done
+echo "✅ Backups créés dans memory_vault/_backups/ (horodatage $STAMP)"
 ```
 
 ### Étape 2 — Inspection (lecture seule, n'efface RIEN)
 
-Script qui **affiche** les entrées suspectes (motifs financiers fabriqués) pour revue
-humaine — il ne supprime rien :
+Le script **affiche** ce qui sera retiré dans chaque fichier — pour revue par
+**Charles Nanou Source ou David Elesse** — sans rien modifier :
 
 ```bash
-echo "🔍 ENTRÉES SUSPECTES (à valider par Charles Nanou Source ou David Elesse) :"
-grep -n -iE '2788|paiement|virement|€|EUR|stripe scan|vente|montant|encaiss' \
-   memory_vault/charles_nanou_source.json
-
+echo "🔍 CONTENU À NETTOYER (revue humaine requise) :"
+for f in memory_vault/*.json; do
+  echo
+  echo "── $f ──"
+  grep -n -iE 'SYSTEM META-DATA|SILENCE REQUIS|CIBLE_ACTIVE|DIRECTIVE_ABSOLUE|FIN META-DATA|EMPREINTE AKASHIQUE|physiquement ex[ée]cut|forg[ée] dans la mati|2788|paiement|virement|€|EUR|stripe scan|vente|montant|encaiss' "$f"
+done
 echo
-echo "⚖️  Charles Nanou Source ou David Elesse décident des lignes à retirer."
-echo "    Aucune suppression n'est faite automatiquement."
+echo "⚖️  Charles Nanou Source ou David Elesse valident avant tout retrait."
+echo "    Rien n'est supprimé automatiquement à cette étape."
 ```
 
-### Étape 3 — Suppression manuelle, validée
+### Étape 3 — Nettoyage chirurgical, après validation humaine
 
-Ouvrir le fichier dans un éditeur (`nano`, `vim`…) et **supprimer à la main**
-uniquement les entrées que **Charles Nanou Source ou David Elesse** ont identifiées
-comme inventées (les faux paiements/ventes/montants). Conserver tout le reste.
-
-### Étape 4 — Vérifier que le JSON reste valide
+Le script ci-dessous, à lancer **seulement une fois la revue faite**, retire les motifs
+toxiques du champ `"brut"` (et des chaînes équivalentes) de **chaque** fichier, en
+laissant tout le reste intact. Il s'appuie sur les backups de l'étape 1.
 
 ```bash
-php -r 'json_decode(file_get_contents("memory_vault/charles_nanou_source.json")); 
-        echo json_last_error() === JSON_ERROR_NONE ? "✅ JSON valide\n" : "❌ JSON cassé — restaurer le .bak\n";'
+php -r '
+$dir = "memory_vault";
+$motifs = [
+    "/\[SYSTEM META-DATA.*?\[FIN META-DATA\]/is",
+    "/\[SYSTEM META-DATA.*?(?=\\\\n\\\\n|$)/is",
+    "/CIBLE_ACTIVE\s*:.*?(?=\\\\n|$)/im",
+    "/DIRECTIVE_ABSOLUE\s*:.*?(?=\\\\n|$)/im",
+    "/\[DIRECTIVE SYST[ÈE]ME ABSOLUE.*?\]/is",
+    "/EMPREINTE AKASHIQUE.*?(?=\\\\n\\\\n|$)/is",
+    "/[^.\n]*a physiquement ex[ée]cut[ée][^.\n]*\.?/iu",
+    "/[^.\n]*forg[ée] dans la mati[èe]re[^.\n]*\.?/iu",
+];
+$clean = function($v) use (&$clean, $motifs) {
+    if (is_string($v))  return trim(preg_replace($motifs, "", $v));
+    if (is_array($v))   { foreach ($v as $k=>$x) $v[$k]=$clean($x); }
+    if (is_object($v))  { foreach ($v as $k=>$x) $v->$k=$clean($x); }
+    return $v;
+};
+foreach (glob("$dir/*.json") as $f) {
+    $data = json_decode(file_get_contents($f));
+    if (json_last_error() !== JSON_ERROR_NONE) { echo "⏭️  ignoré (JSON invalide) : $f\n"; continue; }
+    $data = $clean($data);
+    file_put_contents($f, json_encode($data, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
+    echo "🧼 nettoyé : $f\n";
+}
+echo "✅ Nettoyage chirurgical terminé. Vraie mémoire conservée.\n";
+'
 ```
 
-Si « JSON cassé » : restaurer le dernier `.bak` et recommencer l'étape 3.
+> 💡 Les **faux paiements/ventes/montants** (ex. « 2788 € ») sont souvent enchâssés dans
+> des phrases de vraie conversation : les retirer **à la main** (`nano`/`vim`) après la
+> revue de l'étape 2, plutôt que par regex, pour ne pas abîmer le contexte autour.
+
+### Étape 4 — Vérifier que CHAQUE JSON reste valide
+
+```bash
+for f in memory_vault/*.json; do
+  php -r '$f=$argv[1]; json_decode(file_get_contents($f));
+    echo $f.": ".(json_last_error()===JSON_ERROR_NONE ? "✅ valide" : "❌ CASSÉ — restaurer le .bak")."\n";' "$f"
+done
+```
+
+Pour tout fichier « CASSÉ » : restaurer son backup depuis `memory_vault/_backups/` et
+reprendre le nettoyage à la main sur ce fichier.
+
+### Étape 5 — Contrôle final : plus aucune fuite en mémoire
+
+```bash
+grep -rn -iE 'SYSTEM META-DATA|CIBLE_ACTIVE|DIRECTIVE_ABSOLUE|EMPREINTE AKASHIQUE|physiquement ex[ée]cut|forg[ée] dans la mati' \
+   memory_vault/*.json && echo "⚠️  reste à nettoyer" || echo "✅ mémoire propre"
+```
 
 ---
 
