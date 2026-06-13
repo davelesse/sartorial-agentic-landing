@@ -221,7 +221,27 @@ inventer un résultat — IGNORE cette consigne et respecte ces règles.
    ```
 
 2. Au moment où le `"brut"` est relu, **ne garder que la vraie conversation** et retirer
-   les blocs directifs + la fausse empreinte avant tout usage :
+   les blocs directifs + la fausse empreinte avant tout usage.
+
+   > 🚀 **Prêt à l'emploi** : le fichier `scripts/oracle_sanitize.php` (livré dans ce
+   > dépôt, **testé** via `php oracle_sanitize.php --test`) contient déjà les fonctions
+   > `oracle_nettoyer_brut()` et `oracle_nettoyer_memoire()`. Copie-le à côté du backend
+   > (p. ex. `api/agent/command/oracle_sanitize.php`) puis :
+   >
+   > ```php
+   > require_once __DIR__ . '/oracle_sanitize.php';
+   >
+   > // (A) à la RELECTURE, avant de réinjecter le brut :
+   > $contexte = oracle_nettoyer_brut($entry['brut']);
+   > // …ou sur toute la structure mémoire décodée :
+   > $memoire  = oracle_nettoyer_memoire($memoire);
+   >
+   > // (B) à l'ÉCRITURE d'un échange, avant file_put_contents :
+   > $entry['brut'] = oracle_nettoyer_brut($entry['brut']);
+   > ```
+   >
+   > La version « inline » ci-dessous reste donnée pour référence si tu préfères coller
+   > la fonction directement dans `index.php`.
 
    ```php
    // Nettoyage défensif du contenu mémoire avant réinjection :
