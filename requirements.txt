@@ -1,0 +1,24 @@
+# ═══════════════════════════════════════════════════════════
+#  DIGITAL COLOSSE — API Flask (api_server.py + agents)
+#  Versions alignées sur la prod (pip freeze) — 2026-06-09
+# ═══════════════════════════════════════════════════════════
+
+# --- COEUR DU SYSTÈME ---
+Flask==3.0.2
+Flask-Cors==4.0.0
+
+# --- FLUX FINANCIERS & CRM ---
+stripe==8.3.0
+requests==2.31.0
+
+# --- GÉNÉRATION DE DOCUMENTS (factures PDF) ---
+reportlab==4.5.1
+
+# --- GESTION DES VARIABLES D'ENVIRONNEMENT ---
+python-dotenv==1.0.1
+
+# --- SERVEUR DE PRODUCTION (Optionnel pour Passenger) ---
+gunicorn==21.2.0
+
+# --- IA (Gemini) ---
+google-generativeai==0.4.0
