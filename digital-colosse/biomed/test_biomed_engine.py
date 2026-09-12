@@ -778,8 +778,16 @@ def test_deux_cles_donnent_deux_empreintes():
 
 def test_les_logs_ne_contiennent_pas_la_reference_patient_en_clair():
     empreinte = PSEUDO.of_patient(TENANT_A, "Patient/12345")
+
+    assert "Patient" not in empreinte
     assert "Patient/12345" not in empreinte
-    assert "12345" not in empreinte or len(empreinte) == 16
+    # Hexadécimal de longueur fixe : rien de la référence ne transparaît, et la
+    # longueur ne varie pas avec celle de l'identifiant d'origine.
+    assert len(empreinte) == 16
+    assert set(empreinte) <= set("0123456789abcdef")
+    assert len(PSEUDO.of_patient(TENANT_A, "Patient/1")) == len(
+        PSEUDO.of_patient(TENANT_A, "Patient/" + "9" * 60)
+    )
 
 
 def test_le_pseudonymizer_ne_divulgue_pas_sa_cle():
