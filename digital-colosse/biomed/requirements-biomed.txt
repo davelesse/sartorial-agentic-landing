@@ -1,0 +1,21 @@
+# Moteur biomédical FHIR — dépendances
+#
+# Volontairement minimales : aucun framework web. Le module fonctionne tel quel
+# sous Django, Flask, un worker Celery ou un simple consommateur de file.
+#
+# La pseudonymisation par HMAC-SHA256 n'ajoute AUCUNE dépendance : `hmac` et
+# `hashlib` sont dans la bibliothèque standard. Le contrat du sink n'en ajoute
+# pas non plus — il n'y a délibérément pas de SQLAlchemy ici (voir README).
+
+# Modèles FHIR R4B validés. La 8.x est native pydantic 2 ; la 7.x bascule sur la
+# couche de compatibilité pydantic.v1 — la panne est silencieuse et pénible à
+# diagnostiquer. Ne pas descendre sous 8.3.
+fhir.resources>=8.3,<9
+
+# Tiré par fhir.resources, épinglé explicitement car les schémas d'entrée en
+# dépendent directement.
+pydantic>=2.9,<3
+
+# ── Tests uniquement ──
+pytest>=8.0
+pytest-asyncio>=0.24
